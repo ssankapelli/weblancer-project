@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Profile . {{ user.get_full_name }}{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="container-bg">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header d-flex align-items-center">
+                        <img src="{{ user.profile_picture_url }}" alt="Profile Picture" class="me-3 img-md">
+                        <h2 class="h4 mb-0">{{ user.get_full_name }}</h2>
+                        {% if user.avg_rating %}
+                        <span class="ms-1 badge rounded-pill text-bg-success badge-sm rating-star" title="Average Rating">{{ user.avg_rating }}
+                            <i class="bi bi-star-fill"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="card-info-box">
+                            <h5 class="card-title"><i class="bi bi-info-square"></i> General Information</h5>
+                            <p><strong>Username:</strong> {{ user.username }}</p>
+                        </div>
+                        <div class="card-info-box">
+                            <h5 class=""><i class="bi bi-person-video2"></i> Contact Details</h5>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Conatct Number:</strong> {{ user.phone }}</p>
+                        </div>
+                        <div class="card-info-box">
+                            <h5 class=""><i class="bi bi-geo-alt"></i> Address Information</h5>
+                            <p><strong>Region:</strong> {{ user.country }}</p>
+                            <p><strong>City:</strong> {{ user.city|default:"" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="card-info-box">
+                            <h5><i class="bi bi-person-video3"></i> Bio</h5>
+                            <p>{{ user.bio }}</p>
+                        </div>
+                        {% if user.is_freelancer %}
+                        <div class="card-info-box">
+                            <h5><i class="bi bi-person-square"></i> Freelancer Information</h5>
+                            <p><strong>Skills:</strong></p>
+                            {% for skill in skills %}
+                                <span class="badge bg-secondary">{{ skill }}</span>
+                            {% empty %}
+                                <p>No skills added.</p>
+                            {% endfor %}
+                            <p><strong>URL:</strong> {{ user.freelancer_profile.portfolio_link }}</a></p>
+                            <p><strong>Hourly Expense:</strong> {{ user.freelancer_profile.hourly_rate }}</p>
+                            <p><strong>Total Project Proposal:</strong> 0</p>
+                        </div>
+                        {% endif %}
+                        {% if user.is_client %}
+                        <div class="card-info-box">
+                            <h5><i class="bi bi-person-vcard"></i> Client Information</h5>
+                            <p><strong>Total Project Posted:</strong> {{ user.client_profile.projects.count }}</p>
+                        </div>                        
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card mb-1 shadow-sm">
+                    <div class="card-body">
+                        <div class="card-info-box">
+                            <h5><i class="bi bi-person-video3"></i> User ratings</h5>
+                        </div>
+                        <div class="card-info-box">
+                            <p><strong>Average Ratings:</strong> {{ user.avg_rating }}⭐</p>
+                            <p><strong>Rating Count:</strong> {{ user.received_reviews.count }}</p>
+                            <a href="{% url 'review_list' user.username %}" class="btn btn-secondary w-100 mt-2">Show all</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

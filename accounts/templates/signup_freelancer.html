@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}WebLancer . SignUpFreelancer{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    {% include 'messages.html' %}
+    <form method="post" enctype="multipart/form-data" action="{% url 'signup_freelancer' %}" class="container-bg">
+        {% csrf_token %}
+        <h2 class="text-center">SignUp Freelancer</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="first_name" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Enter First Name">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="last_name" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Enter Last Name">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required placeholder="Enter Your Email Id">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="tel" class="form-control" id="phone" name="phone" required placeholder="Enter Contact Number">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required placeholder="Enter a Unique Username">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control password-field" id="password" name="password" required placeholder="Enter a hard Password">
+                    <button class="btn btn-outline-secondary password-revealer" type="button" data-target="password"><i class="bi bi-eye"></i></button>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="confirm_password" class="form-label">Re-Enter Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control password-field" id="confirm_password" name="confirm_password" required placeholder="Re-Enter a hard Password">
+                    <button class="btn btn-outline-secondary password-revealer" type="button" data-target="confirm_password"><i class="bi bi-eye"></i></button>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="country" class="form-label">Region/Country</label>
+                <input type="text" class="form-control" id="country" name="country" required placeholder="Enter Your Country or Region">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" id="city" name="city" required placeholder="Enter Your City">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="bio" class="form-label">Bio</label>
+                <input type="text" class="form-control" id="bio" name="bio" required placeholder="Tell about yourself">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="profile_picture" class="form-label">Profile Picture</label>
+                <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="skills" class="form-label">Skills</label>
+                <input type="text" class="form-control" id="skills" name="skills" required placeholder="Your Skillset( Separtaed by comma)">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="expertise_area" class="form-label">Expertise area</label>
+                <input type="text" class="form-control" id="expertise_area" name="expertise_area" required placeholder="Area of expertise">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="experience_level" class="form-label">Experience Level</label>
+                <select class="form-select" name="experience_level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="portfolio_link" class="form-label">Protfolio URL</label>
+                <input type="text" class="form-control" id="portfolio_link" name="portfolio_link" required placeholder="Enter a Portfolip URL">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="hourly_rate" class="form-label">Expense(Hourly)</label>
+                <input type="number" class="form-control" id="hourly_rate" name="hourly_rate" accept="image/*">
+            </div>
+        </div>
+            <button type="submit" class="btn btn-primary">SignUp</button>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('.password-revealer');
+
+    toggleButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+
+            if (targetInput.type === 'password') {
+                targetInput.type = 'text';
+                this.innerHTML = '<i class="bi bi-eye-slash"></i>';
+            } else {
+                targetInput.type = 'password';
+                this.innerHTML = '<i class="bi bi-eye"></i>';
+            }
+        });
+    });
+});
+
+</script>
+{% endblock %}

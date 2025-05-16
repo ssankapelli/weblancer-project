@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Post a New Project{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container-bg">
+        {% include 'messages.html' %}
+        <h2>Post a New Project</h2>
+        <form id="project-form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% include 'project_form.html' %}
+            {% include 'file_upload.html' %}
+
+            <button type="submit" class="btn btn-primary mt-3">Submit Project</button>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/file_upload.js' %}"></script>
+{% endblock extra_js %}

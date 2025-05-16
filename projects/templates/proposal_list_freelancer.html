@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %}Proposals{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container-bg">
+        {% include 'messages.html' %}
+        <h2>Your Proposals</h2>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for proposal in proposals %}
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-start">
+                        <h5 class="card-title text-truncate" style="max-width: 75%;">Project: <a href="{% url 'project_detail' proposal.project.id %}" class="link-body-emphasis text-decoration-none">{{ proposal.project.title }}</a>
+                        </h5>
+                        <small class="text-muted" style="font-size: 0.85rem;">{{ proposal.created_at|timesince }} ago</small>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p> {{ proposal.cover_letter }}</p>
+                        <p><strong>Bid Price:</strong> ${{ proposal.proposed_amount }}</p>
+                        <p><strong>Status:</strong>
+                            <span class="badge {% if proposal.status == 'accepted' %}bg-success{% elif proposal.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">{{ proposal.get_status_display }}</span>
+                        </p>
+                        <p class="text-muted">Submitted: {{ proposal.created_at|naturaltime }}({{ proposal.created_at }})</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-footer-section">
+                            <div class="proposal-status-update-section">
+                            {% if request.user == proposal.freelancer.user or request.user == project.client.user %}
+                                <form method="post" action="{% url 'proposal_status_update' proposal.id %}">
+                                    {% csrf_token %}                            
+                            {% endif %}
+                                    <div class="input-group">
+                                        <select name="status" class="form-select">
+                                            {% for val, label in proposal.STATUS_CHOICES %}
+                                                <option value="{{ val }}" {% if proposal.status == val %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-primary btn-sm submit-project-btn" data-proposal-id="{{ proposal.id }}" {% if request.user != proposal.freelancer.user %}disabled{% endif %}>Update</button>
+                                    </div>
+                            {% if request.user == proposal.freelancer.user or request.user == project.client.user %}
+                                </form>
+                            {% endif %}
+                            </div>
+                            <div class="project-submit-section">
+                                <button type="button" class="btn btn-secondary submit-project-btn card-footer-section-btn" data-bs-toggle="modal" data-bs-target="#submissionModal" data-proposal-id="{{ proposal.id }}" {% if request.user != proposal.freelancer.user or proposal.status != 'accepted' %}disabled{% endif %}>
+                                    Submit Project
+                                </button>
+                                {% if request.user == proposal.freelancer.user and proposal.status == 'accepted' %}
+                                {% include "project_submit.html" %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <p class="text-muted">No proposals submitted yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/file_upload.js' %}"></script>
+{% endblock extra_js %}

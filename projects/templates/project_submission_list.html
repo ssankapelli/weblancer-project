@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% debug %}
+{% block title %}{{ project.title }} - submissions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container-bg">
+        {% include 'messages.html' %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h2 class="h4 mb-0">{{ project.title }}</h2>
+                <p class="text-muted">Budget: ${{ project.budget }} | Deadline: {{ project.deadline|default:"No deadline" }}</p>
+            </div>
+        </div>
+        <div class="all-submissions">
+            <h2>All Submission</h2>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for submission in submissions %}
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title text-truncate">
+                            <img class="img-sm" src="{{ submission.proposal.freelancer.user.profile_picture_url }}" alt="Pic">
+                            <a href="{% url 'user_profile' submission.proposal.freelancer.user.username %}" class="a-underline">
+                                {{ submission.proposal.freelancer.user.get_full_name }}
+                            </a>
+                            {% if submission.proposal.freelancer.user.avg_rating %}
+                            <span class="badge rounded-pill text-bg-success badge-sm rating-star" title="Average Rating">{{ submission.proposal.freelancer.user.avg_rating }}
+                                <i class="bi bi-star-fill"></i>
+                            </span>
+                            {% endif %}
+                            {% if request.user.freelancer_profile == submission.proposal.freelancer %}
+                            <span class="badge rounded-pill text-bg-secondary badge-sm">You</span>
+                            {% endif %}
+                        </h5>
+                        <small class="text-muted" style="font-size: 0.85rem;">{{ submission.created_at|timesince }} ago</small>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p> {{ submission.cover_letter }}</p>
+                        <p><strong>Fianl Price:</strong> ${{ submission.final_amount }}</p>
+                        <p><strong>Status:</strong>
+                            <span class="badge {% if submission.status == 'completed' %}bg-success{% elif submission.status == 'submitted' or submission.status == 'approved' %}bg-primary{% elif submission.status == 'revision_requested' %}bg-warning{% else %}bg-danger{% endif %}">{{ submission.get_status_display }}</span>
+                        </p>
+                        <p><strong>Attachments:</strong> {{ submission.attachments.count }}</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-footer-section">
+                            <div class="submission-status-update-section">
+                            {% if request.user == submission.proposal.freelancer.user or request.user == submission.proposal.project.client.user %}
+                                <form method="post" action="{% url 'submission_status_update' submission.id %}">
+                                    {% csrf_token %}                            
+                            {% endif %}
+                                    <div class="input-group">
+                                        <select name="status" class="form-select">
+                                            {% for val, label in submission.STATUS_CHOICES %}
+                                                <option value="{{ val }}" {% if submission.status == val %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-primary btn-sm" {% if request.user != submission.proposal.freelancer.user and request.user != submission.proposal.project.client.user %}disabled{% endif %}>Update</button>
+                                    </div>
+                            {% if request.user == submission.freelancer.user or request.user == submission.proposal.project.client.user %}
+                                </form>
+                            {% endif %}
+                            </div>
+                            <div class="project-submit-section">
+                                <a href="{% url 'project_submission_detail' submission.id %}" class="btn btn-secondary card-footer-section-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <p class="text-muted">No proposals submitted yet.</p>
+            {% endfor %}
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

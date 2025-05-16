@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% debug %}
+{% block title %}Proposals {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container-bg">
+        {% include 'messages.html' %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h2 class="h4 mb-0">{{ project.title }}</h2>
+                <p class="text-muted">Budget: ${{ project.budget }} | Deadline: {{ project.deadline|default:"No deadline" }}</p>
+            </div>
+        </div>
+        {% if request.user.is_freelancer %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4>Your Proposal</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% if self_proposal %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">
+                                    <img class="img-sm" src="{{ self_proposal.freelancer.user.profile_picture_url }}" alt="Pic">
+                                    {{ self_proposal.freelancer.user.get_full_name }}
+                                    {% if self_proposal.freelancer.user.avg_rating %}
+                                    <span class="badge rounded-pill text-bg-success badge-sm rating-star" title="Average Rating">{{ self_proposal.freelancer.user.avg_rating }}
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    {% endif %}
+                                </h5>
+                                <p> {{ self_proposal.cover_letter }}</p>
+                                <p class="mb-1"><strong>Bid Price:</strong> ${{ self_proposal.proposed_amount }}</p>
+                                <p class="mb-1"><strong>Status:</strong>
+                                    <span class="badge rounded-pill {% if self_proposal.status == 'accepted' %}bg-success{% elif self_proposal.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">{{ self_proposal.get_status_display }}</span>
+                                </p>
+                                <p class="text-muted">Submitted: {{ self_proposal.created_at|naturaltime }}({{ self_proposal.created_at }})</p>
+                            </div>
+                            <div>                                
+                                <button type="button" class="btn btn-secondary w-100 submit-project-btn" data-bs-toggle="modal" data-bs-target="#submissionModal" data-proposal-id="{{ self_proposal.id }}" {% if request.user != self_proposal.freelancer.user or self_proposal.status != 'accepted' %}disabled{% endif %}>
+                                    Submit Project
+                                </button>
+                                {% if request.user == self_proposal.freelancer.user and self_proposal.status == 'accepted' %}
+                                {% include "project_submit.html" %}
+                                {% endif %}
+                            </div>
+                            {% if user == self_proposal.freelancer.user or user == project.client.user %}
+                                <form method="post" action="{% url 'proposal_status_update' self_proposal.id %}">
+                                    {% csrf_token %}
+                                    <div class="input-group">
+                                    <select name="status" class="form-select">
+                                        {% for val, label in self_proposal.STATUS_CHOICES %}
+                                            <option value="{{ val }}" {% if self_proposal.status == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">Update</button></div>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% else %}
+                        <p>You do not submitted any proposal yet.</p>                        
+                        <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#submitProposalModal">
+                            Submit Proposal
+                        </button>
+                        {% include 'proposal_form_modal.html' %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        <div class="all-proposals">
+            <h2>All Proposals</h2>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for proposal in proposals %}
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title text-truncate" style="max-width: 75%;">
+                            <img class="img-sm" src="{{ proposal.freelancer.user.profile_picture_url }}" alt="Pic">
+                            <a href="{% url 'user_profile' proposal.freelancer.user.username %}" class="a-underline">
+                                {{ proposal.freelancer.user.get_full_name }}
+                            </a>
+                            {% if proposal.freelancer.user.avg_rating %}
+                            <span class="badge rounded-pill text-bg-success badge-sm rating-star" title="Average Rating">{{ proposal.freelancer.user.avg_rating }}
+                                <i class="bi bi-star-fill"></i>
+                            </span>
+                            {% endif %}
+                            {% if request.user.freelancer_profile == proposal.freelancer %}
+                            <span class="badge rounded-pill text-bg-secondary badge-sm">You</span>
+                            {% endif %}
+                        </h5>
+                        <small class="text-muted" style="font-size: 0.85rem;">{{ proposal.created_at|timesince }} ago</small>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p> {{ proposal.cover_letter }}</p>
+                        <p><strong>Bid Price:</strong> ${{ proposal.proposed_amount }}</p>
+                        <p><strong>Status:</strong>
+                            <span class="badge rounded-pill {% if proposal.status == 'accepted' %}bg-success{% elif proposal.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">{{ proposal.get_status_display }}</span>
+                        </p>
+                        <p class="text-muted">Submitted: {{ proposal.created_at|naturaltime }}({{ proposal.created_at }})</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-footer-section">
+                            <button type="button" data-proposal-id="{{ proposal.id }}" class="btn btn-primary accept-proposals" title="Accept">
+                                <i class="bi bi-check-circle"></i> <span class="d-none d-md-inline-block">Accept</span>
+                            </button>
+                            <a href="{% url 'create_conversation' proposal.id %}" class="btn btn-outline-success" title="Message">
+                                <i class="bi bi-chat-text"></i> <span class="d-none d-md-inline-block">Message</span>
+                            </a>
+                            <a href="{% url 'user_profile' proposal.freelancer.user.username %}" id="reject-proposal" class="btn btn-outline-danger" title="Reject">
+                                <i class="bi bi-x-circle"></i> <span class="d-none d-md-inline-block">Reject</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <p class="text-muted">No proposals submitted yet.</p>
+            {% endfor %}
+            {% include 'payment_modal.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

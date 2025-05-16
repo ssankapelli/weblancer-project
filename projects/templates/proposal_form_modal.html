@@ -1,0 +1,28 @@
+<div class="modal fade" id="submitProposalModal" tabindex="-1" aria-labelledby="submitProposalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="submitProposalModalLabel">Submit Your Proposal Bid</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="proposalForm" action="{% url 'proposal_submit' project.id %}" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="proposed_amount" class="form-label">Bid Price</label>
+                    <input type="number" name="proposed_amount" id="proposed_amount" class="form-control" placeholder="Enter your bid price" min="1" max="{{ project.budget }}" required />
+                    <small class="form-text text-muted">Bid price must not exceed the project budget.</small>
+                </div>
+                <div class="mb-3">
+                    <label for="cover_letter" class="form-label">Message (optional)</label>
+                    <textarea name="cover_letter" id="cover_letter" class="form-control" rows="3" placeholder="Add a message..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Proposal</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

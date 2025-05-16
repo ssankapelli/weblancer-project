@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container-bg">
+        {% include 'messages.html' %}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="h4 mb-0">{{ project.title }}</h2>
+                        <span class="badge {% if project.status == 'open' %}bg-success{% elif project.status == 'in_progress' %}bg-warning{% elif project.status == 'completed' %}bg-primary{% else %}bg-danger{% endif %}">
+                            {{ project.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-info-box mb-3">
+                            <h5 class="card-title"><i class="bi bi-pencil-square"></i> Description</h5>
+                            <p>{{ project.description }}</p>
+                        </div>
+                        <div class="card-info-box mb-3">
+                            <h5><i class="bi bi-file-earmark-text"></i> Attachments</h5>
+                            {% if project.attachments.all %}
+                                <ul class="list-group">
+                                    {% for attachment in project.attachments.all %}
+                                        <li class="list-group-item">
+                                            {% if attachment.files.url|lower|slice:"-3:" == "png" or attachment.files.url|lower|slice:"-3:" == "jpg" or attachment.files.url|lower|slice:"-4:" == "jpeg" or attachment.files.url|lower|slice:"-4:" == 'webp' %}
+                                                <img src="{{ attachment.files.url }}" alt="Attachment" class="img-thumbnail" style="max-width: 100px;">
+                                            {% elif attachment.files.url|lower|slice:"-3:" == "pdf" %}
+                                                <iframe src="{{ attachment.files.url }}" width="100" height="100"></iframe>
+                                            {% endif %}
+                                            <a href="{{ attachment.files.url }}" download>
+                                                <i class="bi bi-download"></i> {{ attachment.files.name|cut:"project_files/" }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No attachments available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- <div class="card-footer">
+                    <div class="card-footer-section"> -->
+                        {% if request.user == project.client.user %}
+                        <div class="accordion" id="updateProjectStatusAccordion">
+                            <div class="accordion-item">
+                              <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#updateProjectStatusAccordionBody" aria-expanded="true" aria-controls="updateProjectStatusAccordionBody">
+                                  Update Status
+                                </button>
+                              </h2>
+                              <div id="updateProjectStatusAccordionBody" class="accordion-collapse collapse" data-bs-parent="#updateProjectStatusAccordion">
+                                <div class="accordion-body">
+                                    <div id="project-status-update-section" class="status-update-section">
+                                        <form method="post" action="{% url 'project_status_update' project.id %}">
+                                            {% csrf_token %}
+                                            <div class="input-group">
+                                                <select name="status" class="form-select">
+                                                    {% for val, label in project.STATUS_CHOICES %}
+                                                        <option value="{{ val }}" {% if project.status == val %}selected{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    <!-- </div>
+                </div> -->
+            </div>
+
+            <div class="col-md-4">                
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-info-square"></i> Project Information</h5>
+                        <p><strong>Budget:</strong> ${{ project.budget|default:"N/A" }}</p>
+                        <p><strong>Skills Required:</strong> {{ project.skills_required|default:"Not specified" }}</p>
+                        <p><strong>Deadline:</strong> {{ project.deadline|default:"No deadline" }}</p>
+                        <p><strong>Posted:</strong> {{ project.created_at }}</p>
+                    </div>
+                </div>
+                {% if request.user.is_freelancer %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-person-square"></i> Your Proposal</h5>
+                        {% if self_proposal %}
+                        <p> {{ self_proposal.cover_letter }}</p>
+                        <p><strong>Bid amount:</strong> ${{ self_proposal.proposed_amount|default:"N/A" }}</p>
+                        <span class="badge {% if self_proposal.status == 'accepted' %}bg-success{% elif self_proposal.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ self_proposal.get_status_display }}
+                        </span>
+                        <small class="text-muted" style="font-size: 0.85rem;">{{ self_proposal.created_at|timesince }} ago</small>
+                        <button type="button" class="btn btn-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#submitProposalModal">
+                            Update Proposal
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#submitProposalModal">
+                            Submit Proposal
+                        </button>
+                        {% endif %}
+                        {% include 'proposal_form_modal.html' %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if request.user == project.project_proposals.freelancer.user or request.user == project.client.user %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-journal-medical"></i> Submission Information</h5>
+                        <p><strong>Total Submissions:</strong> {{ project.project_proposals.submitted_projects.count }}</p>
+                        <a href="{% url 'submission_list' project.id %}" class="btn btn-secondary w-100 mt-2">View Submissions</a>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-envelope-paper"></i> Proposal Information</h5>
+                        <p><strong>Total Proposals:</strong> {{ project.project_proposals.count }}</p>
+                        <a href="{% url 'proposal_list' project.id %}" class="btn btn-secondary w-100 mt-2">View Proposals</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

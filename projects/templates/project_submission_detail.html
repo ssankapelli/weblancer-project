@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ submission.proposal.project.title }} - submission{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container-bg">
+        {% include 'messages.html' %}
+        <h2>Project Submission</h2>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">{{ submission.proposal.project.title }}</h4>
+                        <span class="badge {% if submission.status == 'completed' %}bg-success{% elif submission.status == 'submitted' or submission.status == 'approved' %}bg-primary{% elif submission.status == 'revision_requested' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ submission.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-info-box mb-3">
+                            <h5 class="card-title"><i class="bi bi-pencil-square"></i> Description</h5>
+                            <p>{{ submission.message }}</p>
+                        </div>
+                        <div class="card-info-box mb-3">
+                            <h5><i class="bi bi-file-earmark-text"></i> Attachments</h5>
+                            {% if attachments.all %}
+                                <ul class="list-group">
+                                    {% for attachment in attachments.all %}
+                                        <li class="list-group-item">
+                                            {% if attachment.files.url|lower|slice:"-3:" == "png" or attachment.files.url|lower|slice:"-3:" == "jpg" or attachment.files.url|lower|slice:"-4:" == "jpeg" %}
+                                                <img src="{{ attachment.files.url }}" alt="Attachment" class="img-thumbnail img-preview">
+                                            {% elif attachment.files.url|lower|slice:"-3:" == "pdf" %}
+                                                <iframe src="{{ attachment.files.url }}" width="100" height="100"></iframe>
+                                            {% endif %}
+                                            <a href="{{ attachment.files.url }}" download>
+                                                <i class="bi bi-download"></i> {{ attachment.files.name|cut:"submission_files/" }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No attachments available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-journal-medical"></i> Submission Information</h5>
+                        <p>Final amount: {{ submission.final_amount }}</p>
+                        <p>Revision number: {{ submission.revision_count }}</p>
+                        <p class="text-muted">Submitted: {{ submission.created_at|naturaltime }}({{ submission.created_at }})</p>
+                    </div>
+                </div>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-person-square"></i> Payout</h5>
+                        {% if submission.status != "approved" %}
+                            <p>Submission yet to approved by client.</p>
+                            <a href="#" id="" type="button" class="payment-btn btn btn-primary w-100 mt-2 disabled" disabled>
+                                Request Payout
+                            </a>
+                        {% else %}
+                            {% if payout %}
+                                <p><strong>Status:</strong> {{ payout.status }}</p>
+                                <a href="{% url 'payout_detail' payout.id %}" id="" type="button" class="payment-btn btn btn-primary w-100 mt-2">
+                                    Show details
+                                </a>
+                            {% else %}
+                                <p><strong>Status:</strong> Request For Payout</p>
+                                <small>By request for payout you are accepting the terms and condition.</small>
+                                <a href="{% url 'payout_request' submission.proposal.payments.id %}" id="" type="button" class="payment-btn btn btn-primary w-100 mt-2">
+                                    Request Payout
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% if submission.status == 'completed' and submission.proposal.project.is_completed %}
+                    {% include 'review_form_modal.html' %}
+                    {% endif %}
+                </div>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-person-square"></i> Freelancer Information</h5>
+                        <p>
+                            <a href="{% url 'user_profile' submission.proposal.freelancer.user.username %}" class="a-underline">
+                                {{ submission.proposal.freelancer.user.get_full_name }}
+                            </a>                            
+                            {% if submission.proposal.freelancer.user.avg_rating %}
+                            <span class="ms-1 badge rounded-pill text-bg-success rating-star" title="Average Rating">{{ submission.proposal.freelancer.user.avg_rating }}
+                                <i class="bi bi-star-fill"></i>
+                            </span>
+                            {% endif %}
+                        </p>
+                        <p>Total Proposals</p>
+                        <a href="{% url 'user_profile' submission.proposal.freelancer.user.username %}" class="btn btn-secondary mt-2 w-100">Freelancer Profile</a>
+                    </div>
+                </div>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5><i class="bi bi-envelope-paper"></i> Proposal Information</h5>
+                        <p> {{ submission.proposal.cover_letter }}</p>
+                        <p><strong>Bid amount:</strong> ${{ submission.proposal.proposed_amount|default:"N/A" }}</p>
+                        <span class="badge {% if submission.proposal.status == 'accepted' %}bg-success{% elif submission.proposal.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ submission.proposal.get_status_display }}
+                        </span>
+                        <small class="text-muted" style="font-size: 0.85rem;">{{ self_proposal.created_at }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

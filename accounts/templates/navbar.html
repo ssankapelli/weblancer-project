@@ -1,0 +1,96 @@
+<style type="text/css">
+  .dropdown-menu {
+            right: 0;
+            left: auto; /* Align dropdown menu to the right */
+            margin-right: 1rem;
+        }
+        .navbar-items i {
+          font-size: 1.25rem;
+        }
+    /* Hover effect */
+    .nav-link:hover {
+      color: #007bff;
+/*      color: var(--bs-link-hover-color);*/
+    }
+
+    /* Active state effect */
+    .navbar-items:active {
+      color: #0056b3;
+    }
+  </style>
+<nav class="navbar navbar-expand-lg border-bottom border-body bg-body-tertiary">
+    <div class="container-fluid">
+        
+{% if request.path == "/conversations/" %}
+<button class="btn border me-2" id="toggle-sidebar" type="button" title="Toggle Sidebar"><i class="bi bi-layout-sidebar"></i></button>
+{% endif %}
+    <a class="navbar-brand" href="{% url 'home' %}">WebLancer</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+                <a class="nav-link navbar-items" href="{% url 'home' %}" id="homeIcon">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdownProjectButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span>Project</span>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownProjectButton">
+                    {% if request.user.is_client %}
+                    <li><a class="dropdown-item" href="{% url 'project_upload' %}">New Project</a></li>
+                    {% endif %}
+                    <li><a class="dropdown-item" href="{% url 'project_list' %}">Project List</a></li>
+                </ul>
+            </li>
+        </ul>
+        <div class="me-2">
+            <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+        </div>
+      {% if request.user.is_authenticated %}
+        <div class="dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="dropdownProfileButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="{{ request.user.profile_picture_url }}" alt="Pic" class="flex-shrink-0 rounded-circle border me-2" height=40 width=40>
+                <span>{{ request.user.first_name }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownProfileButton">
+                <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                {% if request.user.is_freelancer %}
+                <li><a class="dropdown-item" href="{% url 'user_proposal_list' request.user.username %}">Your Proposals</a></li>
+                {% endif %}
+                {% if request.user.is_client %}
+                <li><a class="dropdown-item" href="{% url 'user_project_list' request.user.username %}">Your projects</a></li>
+                {% endif %}
+                <li><a class="dropdown-item" href="{% url 'user_submission_list_request' %}">Your Submissions</a></li>
+                <li><a class="dropdown-item" href="{% url 'conversations' %}">Messages</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="dropdown-item">
+                    <div class="form-check form-switch form-check-reverse text-start">
+                        <label class="form-check-label" for="themeSwitch">Dark Mode</label>
+                        <input class="form-check-input ms-0" type="checkbox" id="themeSwitch">
+                    </div>
+                </li>
+            </ul>
+          </div>
+      {% else %}
+            <div>
+                <a class="btn btn-primary me-3" href="{% url 'login' %}">Login</a>
+            </div>
+            <div>
+                <a class="btn btn-secondary me-3" href="{% url 'signup_client' %}">SignUp Client</a>
+            </div>
+            <div>
+                <a class="btn btn-outline-secondary" href="{% url 'signup_freelancer' %}">SignUp</a>
+            </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>
